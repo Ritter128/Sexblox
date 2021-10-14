@@ -35,8 +35,14 @@ int main(void)
 
     Vertex vertices[] = {
         glm::vec3(-0.5f,-0.5f, 0.0f),
-        glm::vec3(0.5, -0.5f, 0.0f),
-        glm::vec3(-0.5, 0.5f, 0.0f),
+        glm::vec3(0.5f, -0.5f, 0.0f),
+        glm::vec3(-0.5f, 0.5f, 0.0f),
+        glm::vec3(0.5f, 0.5f, 0.0f),
+    };
+
+    unsigned int indices[] = {
+        0, 1, 2,
+        1, 3, 2,
     };
 
     unsigned int vertexArrayID;
@@ -48,6 +54,11 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    unsigned int indexBufferID;
+    glGenBuffers(1, &indexBufferID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, position));
     glEnableVertexArrayAttrib(vertexArrayID, 0);
 
@@ -57,7 +68,7 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
