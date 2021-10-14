@@ -77,6 +77,9 @@ int main(void)
         glfwPollEvents();
     }
 
+    glDeleteVertexArrays(1, &vertexArrayID);
+    glDeleteBuffers(1, &vertexBufferID);
+    glDeleteBuffers(1, &indexBufferID);
     glfwTerminate();
     return 0;
 }
