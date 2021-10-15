@@ -12,27 +12,72 @@ struct Vertex
 };
 
 const std::string vsSource = R"(
-#version 330 core
+#version 460 core
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aColor;
 
+out vec3 vertexColor;
+
 void main()
 {
-    gl_Position = aPosition;
+    gl_Position = vec4(aPosition, 1.0);
+    vertexColor = aColor;
 }
 )";
 
 const std::string fsSource = R"(
-#version 330 core
+#version 460 core
+
+in vec3 vertexColor;
 
 out vec4 fragColor;
 
 void main()
 {
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    fragColor = vec4(vertexColor, 1.0);
 }
 )";
+
+unsigned int CompileShader(const std::string& src, unsigned int type)
+{
+    unsigned int shaderID = glCreateShader(type);
+    const char* cSrc = src.c_str();
+    glShaderSource(shaderID, 1, &cSrc, 0);
+    glCompileShader(shaderID);
+
+    int compileStatus;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
+
+    if (compileStatus != GL_TRUE)
+    {
+        switch (type)
+        {
+            case GL_VERTEX_SHADER:
+            {
+                std::cout << "[VERTEX SHADER ERROR]\n";
+                break;
+            }
+            case GL_FRAGMENT_SHADER:
+            {
+                std::cout << "[FRAGMENT SHADER ERROR]\n";
+                break;
+            }
+        }
+
+        int length;
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &length);
+
+        char* infoLog = (char*)alloca(length * sizeof(char));
+
+        glGetShaderInfoLog(shaderID, length, &length, infoLog);
+
+        std::cout << infoLog << "\n";
+
+        return 0;
+    }
+    return shaderID;
+}
 
 int main(void)
 {
@@ -42,8 +87,8 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
@@ -75,15 +120,8 @@ int main(void)
         1, 3, 2,
     };
 
-    unsigned int vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    const char* cVSSource = vsSource.c_str();
-    glShaderSource(vertexShaderID, 1, &cVSSource, 0);
-    glCompileShader(vertexShaderID);
-
-    unsigned int fragShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* cFSSource = fsSource.c_str();
-    glShaderSource(fragShaderID, 1, &cFSSource, 0);
-    glCompileShader(fragShaderID);
+    unsigned int vertexShaderID = CompileShader(vsSource, GL_VERTEX_SHADER);
+    unsigned int fragShaderID = CompileShader(fsSource, GL_FRAGMENT_SHADER);
 
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShaderID);
@@ -109,10 +147,10 @@ int main(void)
 
     // aPosition
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, position));
-    glEnableVertexAttribArray(0);
+    glEnableVertexArrayAttrib(vertexArrayID, 0);
     // aColor
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, color));
-    glEnableVertexAttribArray(1);
+    glEnableVertexArrayAttrib(vertexArrayID, 1);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
