@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
+#include <stb_image.h>
 #include <iostream>
 #include <string>
 
@@ -9,6 +10,7 @@ struct Vertex
 {
     glm::vec3 position;
     glm::vec3 color;
+    glm::vec2 texCoord;
 };
 
 const std::string vsSource = R"(
@@ -16,26 +18,32 @@ const std::string vsSource = R"(
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aColor;
+layout(location = 2) in vec2 aTexCoord;
 
 out vec3 vertexColor;
+out vec2 texCoord;
 
 void main()
 {
     gl_Position = vec4(aPosition, 1.0);
     vertexColor = aColor;
+    texCoord = aTexCoord;
 }
 )";
 
 const std::string fsSource = R"(
 #version 460 core
 
+uniform sampler2D textureSample;
+
 in vec3 vertexColor;
+in vec2 texCoord;
 
 out vec4 fragColor;
 
 void main()
 {
-    fragColor = vec4(vertexColor, 1.0);
+    fragColor = texture(textureSample, texCoord) * vec4(vertexColor, 1.0);
 }
 )";
 
@@ -63,7 +71,7 @@ unsigned int CompileShader(const std::string& src, unsigned int type)
                 std::cout << "[FRAGMENT SHADER ERROR]\n";
                 break;
             }
-        }
+        }   
 
         int length;
         glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &length);
@@ -109,16 +117,42 @@ int main(void)
     }
 
     Vertex vertices[] = {
-        glm::vec3(-0.5f, -0.5f,  0.0f), glm::vec3( 1.0f,  0.0f,  0.0f),
-        glm::vec3( 0.5f, -0.5f,  0.0f), glm::vec3( 0.0f,  1.0f,  0.0f),
-        glm::vec3(-0.5f,  0.5f,  0.0f), glm::vec3( 0.0f,  0.0f,  1.0f),
-        glm::vec3( 0.5f,  0.5f,  0.0f), glm::vec3( 1.0f,  1.0f,  0.0f),
+        glm::vec3(-0.5f, -0.5f,  0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f),
+        glm::vec3( 0.5f, -0.5f,  0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f),
+        glm::vec3(-0.5f,  0.5f,  0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f),
+        glm::vec3( 0.5f,  0.5f,  0.0f), glm::vec3( 1.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f),
     };
 
     unsigned int indices[] = {
         0, 1, 2,
         1, 3, 2,
     };
+
+    unsigned int textureID;
+
+    unsigned char* imageData;
+    int imageX, imageY, nrChannels;
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    imageData = stbi_load("Textures/crate.jpg", &imageX, &imageY, &nrChannels, 0);
+    if (!imageData)
+    {
+        std::cout << "Could not load image\n";
+        stbi_image_free(imageData);
+    }
+    else 
+    {
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageX, imageY, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
+    stbi_image_free(imageData);
 
     unsigned int vertexShaderID = CompileShader(vsSource, GL_VERTEX_SHADER);
     unsigned int fragShaderID = CompileShader(fsSource, GL_FRAGMENT_SHADER);
@@ -151,14 +185,24 @@ int main(void)
     // aColor
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, color));
     glEnableVertexArrayAttrib(vertexArrayID, 1);
+    // aTexCoord
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, texCoord));
+    glEnableVertexArrayAttrib(vertexArrayID, 2);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+
+        int location = glGetUniformLocation(shaderProgram, "textureSample");
+        glUniform1i(location, 0);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -169,6 +213,7 @@ int main(void)
         glfwPollEvents();
     }
 
+    glDeleteTextures(1, &textureID);
     glDeleteProgram(shaderProgram);
     glDeleteVertexArrays(1, &vertexArrayID);
     glDeleteBuffers(1, &vertexBufferID);

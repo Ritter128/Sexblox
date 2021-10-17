@@ -5,7 +5,8 @@
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/build/depends/glad/include",
-                "${workspaceFolder}/depends/glm/glm"
+                "${workspaceFolder}/depends/glm/glm",
+                "${workspaceFolder}/depends/stb"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
