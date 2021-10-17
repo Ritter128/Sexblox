@@ -5,7 +5,6 @@
 #include <iostream>
 #include <string>
 
-
 struct Vertex
 {
     glm::vec3 position;
