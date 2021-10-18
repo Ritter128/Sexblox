@@ -1,9 +1,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 #include <stb_image.h>
 #include <iostream>
 #include <string>
+
+/* GLOBALS */
+glm::vec3 cratePosition = glm::vec3(0.0f);
 
 struct Vertex
 {
@@ -19,12 +24,15 @@ layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aColor;
 layout(location = 2) in vec2 aTexCoord;
 
+uniform mat4 uModelMatrix;
+uniform mat4 uProjMatrix;
+
 out vec3 vertexColor;
 out vec2 texCoord;
 
 void main()
 {
-    gl_Position = vec4(aPosition, 1.0);
+    gl_Position = uProjMatrix * uModelMatrix * vec4(aPosition, 1.0);
     vertexColor = aColor;
     texCoord = aTexCoord;
 }
@@ -86,6 +94,18 @@ unsigned int CompileShader(const std::string& src, unsigned int type)
     return shaderID;
 }
 
+void OnKey(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_W)
+    {
+        cratePosition.z += 0.01;
+    }
+    if (key == GLFW_KEY_S)
+    {
+        cratePosition.z -= 0.01;
+    }
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -99,12 +119,14 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(600, 400, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         return -1;
     }
+
+    glfwSetKeyCallback(window, OnKey);
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
@@ -191,6 +213,7 @@ int main(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH);
+    glEnable(GL_DEPTH_TEST);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -198,10 +221,18 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, cratePosition);
+        glm::mat4 projMatrix = glm::perspective(glm::radians(65.0f), (float)600/400, 0.1f, 100.0f);
+
         glUseProgram(shaderProgram);
 
-        int location = glGetUniformLocation(shaderProgram, "textureSample");
-        glUniform1i(location, 0);
+        int texSampleLocation = glGetUniformLocation(shaderProgram, "textureSample");
+        glUniform1i(texSampleLocation, 0);
+        int modelMatrixLocation = glGetUniformLocation(shaderProgram, "uModelMatrix");
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        int projMatrixLocation = glGetUniformLocation(shaderProgram, "uProjMatrix");
+        glUniformMatrix4fv(projMatrixLocation, 1, GL_FALSE, glm::value_ptr(projMatrix));
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
