@@ -223,7 +223,7 @@ int main(void)
 
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, cratePosition);
-        glm::mat4 projMatrix = glm::perspective(glm::radians(65.0f), (float)600/400, 0.1f, 100.0f);
+        glm::mat4 projMatrix = glm::perspective(glm::radians(65.0f), (float)600/400, 0.001f, 100.0f);
 
         glUseProgram(shaderProgram);
 
