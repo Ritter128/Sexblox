@@ -138,15 +138,22 @@ int main(void)
     }
 
     Vertex vertices[] = {
-        glm::vec3(-0.5f, -0.5f,  0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f),
-        glm::vec3( 0.5f, -0.5f,  0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f),
-        glm::vec3(-0.5f,  0.5f,  0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f),
-        glm::vec3( 0.5f,  0.5f,  0.0f), glm::vec3( 1.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f),
+        glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f),
+        glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f),
+        glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f),
+        glm::vec3( 0.5f,  0.5f,  0.5f), glm::vec3( 1.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f),
+
+	    glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f),
+        glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f),
+        glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f),
+        glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3( 1.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f),
     };
 
     unsigned int indices[] = {
         0, 1, 2,
         1, 3, 2,
+	    4, 5, 6,
+	    5, 7, 6
     };
 
     unsigned int textureID;
@@ -234,7 +241,7 @@ int main(void)
         int projMatrixLocation = glGetUniformLocation(shaderProgram, "uProjMatrix");
         glUniformMatrix4fv(projMatrixLocation, 1, GL_FALSE, glm::value_ptr(projMatrix));
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
