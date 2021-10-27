@@ -1,0 +1,1 @@
+git add src/*.cpp && git add src/*.h && git add src/*.sh
