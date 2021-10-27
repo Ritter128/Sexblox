@@ -14,7 +14,7 @@ public:
 
     unsigned int GetProgramID();
 
-    void Unload();
+    void Unload();  
 private:
     unsigned int m_ProgramID;
 
