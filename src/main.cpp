@@ -6,16 +6,12 @@
 #include <stb_image.h>
 #include <iostream>
 #include <string>
+#include <vector>
+
+#include "rawmodel.h"
 
 /* GLOBALS */
 glm::vec3 cratePosition = glm::vec3(0.0f);
-
-struct Vertex
-{
-    glm::vec3 position;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-};
 
 const std::string vsSource = R"(
 #version 460 core
@@ -136,7 +132,6 @@ int main(void)
         std::cout << "Failed to load GLAD\n";
         return -1;
     }
-
     Vertex vertices[] = {
         glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f),
         glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f),
@@ -155,6 +150,8 @@ int main(void)
 	    4, 5, 6,
 	    5, 7, 6
     };
+
+    RawModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
 
     unsigned int textureID;
 
@@ -200,12 +197,12 @@ int main(void)
     unsigned int vertexBufferID;
     glGenBuffers(1, &vertexBufferID);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, model.vertexSize, model.vertices, GL_STATIC_DRAW);
 
     unsigned int indexBufferID;
     glGenBuffers(1, &indexBufferID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indexSize, model.indices, GL_STATIC_DRAW);
 
     // aPosition
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, position));
@@ -241,7 +238,7 @@ int main(void)
         int projMatrixLocation = glGetUniformLocation(shaderProgram, "uProjMatrix");
         glUniformMatrix4fv(projMatrixLocation, 1, GL_FALSE, glm::value_ptr(projMatrix));
 
-        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, model.count, GL_UNSIGNED_INT, 0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
