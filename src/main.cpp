@@ -1,14 +1,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
 #include <stb_image.h>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include "modelloader.h"
+#include "shader.h"
 
 /* GLOBALS */
 glm::vec3 cratePosition = glm::vec3(0.0f);
@@ -49,46 +48,6 @@ void main()
     fragColor = texture(textureSample, texCoord) * vec4(vertexColor, 1.0);
 }
 )";
-
-unsigned int CompileShader(const std::string& src, unsigned int type)
-{
-    unsigned int shaderID = glCreateShader(type);
-    const char* cSrc = src.c_str();
-    glShaderSource(shaderID, 1, &cSrc, 0);
-    glCompileShader(shaderID);
-
-    int compileStatus;
-    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
-
-    if (compileStatus != GL_TRUE)
-    {
-        switch (type)
-        {
-            case GL_VERTEX_SHADER:
-            {
-                std::cout << "[VERTEX SHADER ERROR]\n";
-                break;
-            }
-            case GL_FRAGMENT_SHADER:
-            {
-                std::cout << "[FRAGMENT SHADER ERROR]\n";
-                break;
-            }
-        }   
-
-        int length;
-        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &length);
-
-        char* infoLog = (char*)alloca(length * sizeof(char));
-
-        glGetShaderInfoLog(shaderID, length, &length, infoLog);
-
-        std::cout << infoLog << "\n";
-
-        return 0;
-    }
-    return shaderID;
-}
 
 void OnKey(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -179,16 +138,7 @@ int main(void)
 
     stbi_image_free(imageData);
 
-    unsigned int vertexShaderID = CompileShader(vsSource, GL_VERTEX_SHADER);
-    unsigned int fragShaderID = CompileShader(fsSource, GL_FRAGMENT_SHADER);
-
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShaderID);
-    glAttachShader(shaderProgram, fragShaderID);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertexShaderID);
-    glDeleteShader(fragShaderID);
+    Shader shaderProgram(vsSource, fsSource);
 
     ModelLoader loader(model);
 
@@ -207,14 +157,9 @@ int main(void)
         modelMatrix = glm::translate(modelMatrix, cratePosition);
         glm::mat4 projMatrix = glm::perspective(glm::radians(65.0f), (float)600/400, 0.001f, 100.0f);
 
-        glUseProgram(shaderProgram);
-
-        int texSampleLocation = glGetUniformLocation(shaderProgram, "textureSample");
-        glUniform1i(texSampleLocation, 0);
-        int modelMatrixLocation = glGetUniformLocation(shaderProgram, "uModelMatrix");
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        int projMatrixLocation = glGetUniformLocation(shaderProgram, "uProjMatrix");
-        glUniformMatrix4fv(projMatrixLocation, 1, GL_FALSE, glm::value_ptr(projMatrix));
+        shaderProgram.SetUniformInt("textureSample", 0);
+        shaderProgram.SetUniformMatrix4("uModelMatrix", modelMatrix);
+        shaderProgram.SetUniformMatrix4("uProjMatrix", projMatrix);
 
         glDrawElements(GL_TRIANGLES, model.count, GL_UNSIGNED_INT, 0);
 
@@ -226,7 +171,7 @@ int main(void)
     }
 
     glDeleteTextures(1, &textureID);
-    glDeleteProgram(shaderProgram);
+    shaderProgram.Unload();
     loader.Unload();
     glfwTerminate();
     return 0;
