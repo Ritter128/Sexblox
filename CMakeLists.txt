@@ -7,7 +7,7 @@ add_subdirectory(depends/glad)
 add_subdirectory(depends/stb)
 add_subdirectory(depends/glm)
 
-add_executable(${PROJECT_NAME} src/main.cpp src/rawmodel)
+add_executable(${PROJECT_NAME} src/main.cpp src/rawmodel src/modelloader.cpp src/modelloader.h)
 
 
 target_link_directories(${PROJECT_NAME} PRIVATE depends/glfw/src depends/glad/src)

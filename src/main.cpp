@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "rawmodel.h"
+#include "modelloader.h"
 
 /* GLOBALS */
 glm::vec3 cratePosition = glm::vec3(0.0f);
@@ -190,29 +190,7 @@ int main(void)
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragShaderID);
 
-    unsigned int vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    glBindVertexArray(vertexArrayID);
-
-    unsigned int vertexBufferID;
-    glGenBuffers(1, &vertexBufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-    glBufferData(GL_ARRAY_BUFFER, model.vertexSize, model.vertices, GL_STATIC_DRAW);
-
-    unsigned int indexBufferID;
-    glGenBuffers(1, &indexBufferID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indexSize, model.indices, GL_STATIC_DRAW);
-
-    // aPosition
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, position));
-    glEnableVertexArrayAttrib(vertexArrayID, 0);
-    // aColor
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, color));
-    glEnableVertexArrayAttrib(vertexArrayID, 1);
-    // aTexCoord
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, texCoord));
-    glEnableVertexArrayAttrib(vertexArrayID, 2);
+    ModelLoader loader(model);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -249,9 +227,7 @@ int main(void)
 
     glDeleteTextures(1, &textureID);
     glDeleteProgram(shaderProgram);
-    glDeleteVertexArrays(1, &vertexArrayID);
-    glDeleteBuffers(1, &vertexBufferID);
-    glDeleteBuffers(1, &indexBufferID);
+    loader.Unload();
     glfwTerminate();
     return 0;
 }
