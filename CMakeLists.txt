@@ -8,9 +8,10 @@ add_subdirectory(depends/stb)
 add_subdirectory(depends/glm)
 
 add_executable(${PROJECT_NAME} 
-    src/main.cpp src/rawmodel 
+    src/main.cpp src/model 
     src/modelloader.cpp src/modelloader.h
     src/shader.cpp src/shader.h
+    src/texture.cpp src/texture.h
 )
 
 

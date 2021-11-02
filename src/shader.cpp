@@ -3,16 +3,20 @@
 
 Shader::Shader(const std::string& vs, const std::string& fs)
 {
+    // Compile source code of shaders
     unsigned int vertexShaderID = CompileShader(vs, GL_VERTEX_SHADER);
     unsigned int fragShaderID = CompileShader(fs, GL_FRAGMENT_SHADER);
 
+    // Create program, attach compiled shaders and link the program
     m_ProgramID = glCreateProgram();
     glAttachShader(m_ProgramID, vertexShaderID);
     glAttachShader(m_ProgramID, fragShaderID);
     glLinkProgram(m_ProgramID);
 
+    // Activate program
     glUseProgram(m_ProgramID);
 
+    // Delete shaders
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragShaderID);
 }
@@ -31,6 +35,7 @@ void Shader::SetUniformMatrix4(const std::string name, glm::mat4 value)
 
 void Shader::Unload()
 {
+    // Clean up program
     glDeleteProgram(m_ProgramID);
 }
 

@@ -110,42 +110,18 @@ int main(void)
 	    5, 7, 6
     };
 
-    RawModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
-
-    unsigned int textureID;
-
-    unsigned char* imageData;
-    int imageX, imageY, nrChannels;
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    imageData = stbi_load("Textures/crate.jpg", &imageX, &imageY, &nrChannels, 0);
-    if (!imageData)
-    {
-        std::cout << "Could not load image\n";
-        stbi_image_free(imageData);
-    }
-    else 
-    {
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageX, imageY, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-
-    stbi_image_free(imageData);
-
-    Shader shaderProgram(vsSource, fsSource);
-
-    ModelLoader loader(model);
+    TextureModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
+    model.texture.Init(0, "Textures/crate.jpg");
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH);
     glEnable(GL_DEPTH_TEST);
+
+    Shader shaderProgram(vsSource, fsSource);
+    Texture texture;
+    texture.Init(0, "Textures/crate.jpg");
+    ModelLoader loader(model.rawModel);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -161,7 +137,7 @@ int main(void)
         shaderProgram.SetUniformMatrix4("uModelMatrix", modelMatrix);
         shaderProgram.SetUniformMatrix4("uProjMatrix", projMatrix);
 
-        glDrawElements(GL_TRIANGLES, model.count, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, model.rawModel.count, GL_UNSIGNED_INT, 0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -169,10 +145,10 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-
-    glDeleteTextures(1, &textureID);
+    texture.Unload();
     shaderProgram.Unload();
     loader.Unload();
+    model.texture.Unload();
     glfwTerminate();
     return 0;
 }

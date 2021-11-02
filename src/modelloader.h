@@ -1,6 +1,6 @@
 #pragma once
 #include <glad/glad.h>
-#include "rawmodel.h"
+#include "model.h"
 
 class ModelLoader
 {
