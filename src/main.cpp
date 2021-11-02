@@ -110,7 +110,7 @@ int main(void)
 	    5, 7, 6
     };
 
-    TextureModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
+    TexturedModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
     model.texture.Init(0, "Textures/crate.jpg");
 
     glEnable(GL_BLEND);
