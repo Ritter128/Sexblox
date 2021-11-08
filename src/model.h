@@ -18,7 +18,7 @@ struct RawModel
     unsigned int vertexSize, indexSize;
 };
 
-struct TextureModel 
+struct TexturedModel 
 {
     RawModel rawModel;
     Texture texture;
