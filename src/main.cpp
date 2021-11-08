@@ -11,6 +11,10 @@
 
 /* GLOBALS */
 glm::vec3 cratePosition = glm::vec3(0.0f);
+glm::vec3 cameraPosition = glm::vec3(0.0f);
+glm::vec3 cameraRotation = glm::vec3(0.0f);
+glm::vec3 cameraDirection = glm::vec3(0.0f);
+float cameraAngle = 0.0f;
 
 const std::string vsSource = R"(
 #version 460 core
@@ -21,6 +25,7 @@ layout(location = 2) in vec2 aTexCoord;
 
 uniform mat4 uModelMatrix;
 uniform mat4 uProjMatrix;
+uniform mat4 uCameraMatrix;
 
 out vec3 vertexColor;
 out vec2 texCoord;
@@ -37,6 +42,7 @@ const std::string fsSource = R"(
 #version 460 core
 
 uniform sampler2D textureSample;
+uniform int u_BUseTexture;
 
 in vec3 vertexColor;
 in vec2 texCoord;
@@ -45,19 +51,43 @@ out vec4 fragColor;
 
 void main()
 {
-    fragColor = texture(textureSample, texCoord) * vec4(vertexColor, 1.0);
+    if (u_BUseTexture == 1)
+        fragColor = texture(textureSample, texCoord) * vec4(vertexColor, 1.0);
+    else
+        fragColor = vec4(vertexColor, 1.0);
 }
 )";
 
 void OnKey(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if (key == GLFW_KEY_D)
+    {
+        cameraAngle += 0.04;
+        cameraDirection = glm::mat3(glm::rotate(glm::mat4(), cameraAngle, glm::vec3(0.0f, 1.0f, 0.0f))) * cameraDirection;
+    }
+    if (key == GLFW_KEY_A)
+    {
+        cameraAngle -= 0.04;
+        cameraDirection = glm::mat3(glm::rotate(glm::mat4(), cameraAngle, glm::vec3(0.0f, 1.0f, 0.0f))) * cameraDirection;
+    }
+
     if (key == GLFW_KEY_W)
     {
-        cratePosition.z += 0.01;
+        cameraRotation.y += 0.04f;
     }
     if (key == GLFW_KEY_S)
     {
+        cameraRotation.y -= 0.04f;
+    }
+
+
+    if (key == GLFW_KEY_Z)
+    {
         cratePosition.z -= 0.01;
+    }
+    if (key == GLFW_KEY_X)
+    {
+        cratePosition.z += 0.01;
     }
 }
 
@@ -110,7 +140,7 @@ int main(void)
 	    5, 7, 6
     };
 
-    TexturedModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
+    TextureModel model = {12, vertices, indices, sizeof(vertices), sizeof(indices)};
     model.texture.Init(0, "Textures/crate.jpg");
 
     glEnable(GL_BLEND);
@@ -119,8 +149,6 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     Shader shaderProgram(vsSource, fsSource);
-    Texture texture;
-    texture.Init(0, "Textures/crate.jpg");
     ModelLoader loader(model.rawModel);
 
     /* Loop until the user closes the window */
@@ -132,10 +160,17 @@ int main(void)
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, cratePosition);
         glm::mat4 projMatrix = glm::perspective(glm::radians(65.0f), (float)600/400, 0.001f, 100.0f);
-
+        projMatrix = glm::translate(projMatrix, cameraPosition);
+        projMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        //glm::mat4 cameraMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 cameraMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+        //cameraMatrix = glm::translate(cameraMatrix, cameraPosition);
+        
         shaderProgram.SetUniformInt("textureSample", 0);
+        shaderProgram.SetUniformInt("u_BUseTexture", 0);
         shaderProgram.SetUniformMatrix4("uModelMatrix", modelMatrix);
         shaderProgram.SetUniformMatrix4("uProjMatrix", projMatrix);
+        shaderProgram.SetUniformMatrix4("uCameraMatrix", cameraMatrix);
 
         glDrawElements(GL_TRIANGLES, model.rawModel.count, GL_UNSIGNED_INT, 0);
 
@@ -145,7 +180,6 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-    texture.Unload();
     shaderProgram.Unload();
     loader.Unload();
     model.texture.Unload();
