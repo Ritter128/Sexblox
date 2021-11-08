@@ -163,7 +163,7 @@ int main(void)
         projMatrix = glm::translate(projMatrix, cameraPosition);
         projMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
         //glm::mat4 cameraMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 cameraMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 cameraMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, glm::vec3(0.0f, 0.0f, 1.0f));
         //cameraMatrix = glm::translate(cameraMatrix, cameraPosition);
         
         shaderProgram.SetUniformInt("textureSample", 0);
