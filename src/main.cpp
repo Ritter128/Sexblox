@@ -60,34 +60,32 @@ void main()
 
 void OnKey(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_D)
-    {
-        cameraAngle += 0.04;
-        cameraDirection = glm::mat3(glm::rotate(glm::mat4(), cameraAngle, glm::vec3(0.0f, 1.0f, 0.0f))) * cameraDirection;
-    }
-    if (key == GLFW_KEY_A)
-    {
-        cameraAngle -= 0.04;
-        cameraDirection = glm::mat3(glm::rotate(glm::mat4(), cameraAngle, glm::vec3(0.0f, 1.0f, 0.0f))) * cameraDirection;
-    }
-
-    if (key == GLFW_KEY_W)
+    if (key == GLFW_KEY_E)
     {
         cameraRotation.y += 0.04f;
     }
-    if (key == GLFW_KEY_S)
+    if (key == GLFW_KEY_Q)
     {
         cameraRotation.y -= 0.04f;
     }
 
 
-    if (key == GLFW_KEY_Z)
+    if (key == GLFW_KEY_W)
     {
         cratePosition.z -= 0.01;
     }
-    if (key == GLFW_KEY_X)
+    if (key == GLFW_KEY_S)
     {
         cratePosition.z += 0.01;
+    }
+
+    if (key == GLFW_KEY_D)
+    {
+        cratePosition.x -= 0.01;
+    }
+    if (key == GLFW_KEY_A)
+    {
+        cratePosition.x += 0.01;
     }
 }
 
@@ -163,8 +161,8 @@ int main(void)
         projMatrix = glm::translate(projMatrix, cameraPosition);
         projMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
         //glm::mat4 cameraMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 cameraMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, glm::vec3(0.0f, 0.0f, 1.0f));
-        //cameraMatrix = glm::translate(cameraMatrix, cameraPosition);
+        glm::mat4 cameraMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+        cameraMatrix = glm::translate(cameraMatrix, cameraPosition);
         
         shaderProgram.SetUniformInt("textureSample", 0);
         shaderProgram.SetUniformInt("u_BUseTexture", 0);
