@@ -168,7 +168,7 @@ int main()
         shaderProgram.SetUniformInt("textureSample", 0);
         
         shaderProgram.SetUniformInt("u_BUseTexture", 1);
-        shaderProgram.SetUniformInt("u_BUseTexture", 0);
+        shaderProgram.SetUniformInt("u_BUseTexture", 1);
 
         shaderProgram.SetUniformMatrix4("uModelMatrix", modelMatrix);
         shaderProgram.SetUniformMatrix4("uProjMatrix", projMatrix);
