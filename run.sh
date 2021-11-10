@@ -1,5 +1,5 @@
 ./upd.sh
-./loaddepends
+./loaddepends.sh
 mkdir build
 cmake -S . -B build
 cp -r src/Textures build/
