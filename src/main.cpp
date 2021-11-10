@@ -10,7 +10,7 @@
 #include "shader.h"
 
 /* GLOBALS */
-glm::vec3 cratePosition = glm::vec3(0.0f);
+glm::vec3 worldPosition = glm::vec3(0.0f);
 glm::vec3 cameraPosition = glm::vec3(0.0f);
 glm::vec3 cameraRotation = glm::vec3(0.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f);
@@ -72,24 +72,25 @@ void OnKey(GLFWwindow* window, int key, int scancode, int action, int mods)
 
     if (key == GLFW_KEY_W)
     {
-        cratePosition.z -= 0.01;
+        worldPosition.z -= 0.01;
     }
     if (key == GLFW_KEY_S)
     {
-        cratePosition.z += 0.01;
+        worldPosition.z += 0.01;
     }
+
 
     if (key == GLFW_KEY_D)
     {
-        cratePosition.x -= 0.01;
+        worldPosition.x -= 0.01;
     }
     if (key == GLFW_KEY_A)
     {
-        cratePosition.x += 0.01;
+        worldPosition.x += 0.01;
     }
 }
 
-int main(void)
+int main()
 {
     GLFWwindow* window;
 
@@ -156,7 +157,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, cratePosition);
+        modelMatrix = glm::translate(modelMatrix, worldPosition);
         glm::mat4 projMatrix = glm::perspective(glm::radians(65.0f), (float)600/400, 0.001f, 100.0f);
         projMatrix = glm::translate(projMatrix, cameraPosition);
         projMatrix = glm::rotate(projMatrix, cameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -165,7 +166,10 @@ int main(void)
         cameraMatrix = glm::translate(cameraMatrix, cameraPosition);
         
         shaderProgram.SetUniformInt("textureSample", 0);
+        
+        shaderProgram.SetUniformInt("u_BUseTexture", 1);
         shaderProgram.SetUniformInt("u_BUseTexture", 0);
+
         shaderProgram.SetUniformMatrix4("uModelMatrix", modelMatrix);
         shaderProgram.SetUniformMatrix4("uProjMatrix", projMatrix);
         shaderProgram.SetUniformMatrix4("uCameraMatrix", cameraMatrix);
